@@ -29,28 +29,25 @@ public class SlackController {
 
         // 2. 메시지 이벤트 처리
         SlackEvent event = payload.event();
-        if (event != null && "message".equals(event.type()) && event.bot_id() == null) {
 
-            // 특정 워크스페이스만 처리
-            if (!"T088BF3U17U".equals(event.team)) return ResponseEntity.ok("Ignored: other workspace");
-
-            // 특정 채널만 처리 (필요 시)
-            if (!"C08858T5SDC".equals(event.channel)) {
-                log.info("event.channel: " + event.channel);
-                return ResponseEntity.ok("Ignored: other channel");
-            }
-
-            String text = event.text();
-
-            // Discord 전송
-            Map<String, String> discordPayload = Map.of("content", "📢 Slack 메시지: " + text);
-            restTemplate.postForEntity(DISCORD_WEBHOOK, discordPayload, String.class);
-        }
-
-
+        new Thread(() -> processEvent(event)).start();
         return ResponseEntity.ok("OK");
     }
 
+    private void processEvent(SlackEvent event) {
+        if (event == null || !"message".equals(event.type()) || event.bot_id() != null) return;
+        if (!"T088BF3U17U".equals(event.team)) return;
+        if (!("C08858T5SDC".equals(event.channel) || "D088Q32J4EN".equals(event.channel))) return;
+
+        String text = event.text();
+        Map<String, String> discordPayload = Map.of("content", "📢 Slack 메시지: " + text);
+
+        try {
+            restTemplate.postForEntity(DISCORD_WEBHOOK, discordPayload, String.class);
+        } catch (Exception e) {
+            log.error("Failed to send Discord message", e);
+        }
+        }
     // Slack 이벤트 페이로드 전체
     public record SlackEventPayload(
             String type,

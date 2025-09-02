@@ -12,6 +12,6 @@ public class HealthController {
     @GetMapping("/health")
     public ResponseEntity<?> health() {
         log.info("health");
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok("헬스체크");
     }
 }
