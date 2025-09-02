@@ -30,15 +30,23 @@ public class SlackController {
         // 2. 메시지 이벤트 처리
         SlackEvent event = payload.event();
         if (event != null && "message".equals(event.type()) && event.bot_id() == null) {
+
+            // 특정 워크스페이스만 처리
+            if (!"T088BF3U17U".equals(event.team)) return ResponseEntity.ok("Ignored: other workspace");
+
+            // 특정 채널만 처리 (필요 시)
+            if (!"C08858T5SDC".equals(event.channel)) {
+                log.info("event.channel: " + event.channel);
+                return ResponseEntity.ok("Ignored: other channel");
+            }
+
             String text = event.text();
 
             // Discord 전송
             Map<String, String> discordPayload = Map.of("content", "📢 Slack 메시지: " + text);
-            log.info("discordPayload: {}", discordPayload);
-            log.info("event id", event.channel);
-            log.info("event team", event.team);
             restTemplate.postForEntity(DISCORD_WEBHOOK, discordPayload, String.class);
         }
+
 
         return ResponseEntity.ok("OK");
     }
@@ -55,9 +63,12 @@ public class SlackController {
             String type,
             String text,
             String bot_id,
-            String team,      // team_id 추가
-            String channel    // channel_id 추가
+            String team,      // team_id
+            String channel,   // channel_id
+            String channel_type,
+            String user       // 필요하면 사용자 정보도
     ) {}
+
 
 }
 
