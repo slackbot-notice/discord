@@ -18,7 +18,7 @@ public class SlackController {
     private final RestTemplate restTemplate = new RestTemplate();
 
     @PostMapping("/events")
-    public ResponseEntity<String> handleSlackEvent(@RequestBody SlackEventPayload payload) {
+    public ResponseEntity<?> handleSlackEvent(@RequestBody SlackEventPayload payload) {
 
         // 1. URL verification 처리
         if ("url_verification".equals(payload.type())) {
